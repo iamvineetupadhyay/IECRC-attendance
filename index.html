@@ -460,12 +460,31 @@ async function getToken(forcePrompt) {
   if (gToken && !forcePrompt) return gToken;
   await loadGIS();
   return new Promise(res => {
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: cid,
-      scope: 'https://www.googleapis.com/auth/spreadsheets',
-      callback: r => { gToken = r.access_token || null; res(gToken); }
-    });
-    client.requestAccessToken({ prompt: forcePrompt ? 'consent' : '' });
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: cid,
+        scope: 'https://www.googleapis.com/auth/spreadsheets',
+        callback: r => {
+          if (r.error) {
+            console.error('OAuth callback error:', r.error);
+            res(null);
+          } else {
+            gToken = r.access_token || null; 
+            res(gToken);
+          }
+        },
+        error_callback: err => {
+          console.error('OAuth popup error:', err);
+          res(null);
+        }
+      });
+      const opts = {};
+      if (forcePrompt) opts.prompt = 'consent';
+      client.requestAccessToken(opts);
+    } catch(err) {
+      console.error('OAuth request error:', err);
+      res(null);
+    }
   });
 }
 async function connectSheets() {
