@@ -1,850 +1,1637 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IEC Robotics Club</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
-:root{
-  --bg:#0d0f14;--surface:#161920;--surface2:#1e2330;--border:#2a3045;
-  --accent:#4fffb0;--accent2:#ff4f82;--accent3:#4f9fff;--late:#ffcc4f;
-  --na:#c084fc;--text:#e8eaf2;--muted:#6b7394;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 30% 50%,#1a2040,var(--bg) 70%);}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px;width:400px;position:relative;overflow:hidden;}
-.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent3));}
-.login-card h1{font-size:28px;font-weight:800;margin-bottom:4px;}
-.login-sub{color:var(--muted);font-size:12px;margin-bottom:32px;font-family:'Space Mono',monospace;}
-.field-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
-input[type=text],input[type=password],input[type=date],select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;margin-bottom:18px;}
-input:focus,select:focus{border-color:var(--accent);}
-select option{background:#1e2330;}
-.err-msg{color:var(--accent2);font-size:12px;margin:-12px 0 14px;font-family:'Space Mono',monospace;display:none;}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:8px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;transition:all 0.2s;}
-.btn-primary{background:var(--accent);color:#0d0f14;}
-.btn-primary:hover{background:#3de89a;transform:translateY(-1px);}
-.btn-danger{background:var(--accent2);color:#fff;}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
-.btn-blue{background:var(--accent3);color:#fff;}
-.btn-blue:hover{background:#3a8de8;}
-.btn-sm{padding:6px 14px;font-size:12px;}
-.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none!important;}
-#app{display:none;}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;}
-.topbar-brand{font-size:17px;font-weight:800;}
-.topbar-brand span{color:var(--accent);}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.clock-chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
-.sync-indicator{display:flex;align-items:center;gap:6px;}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
-.sync-dot.ok{background:var(--accent);}
-.sync-dot.busy{background:var(--late);animation:pulse 1s infinite;}
-.sync-dot.err{background:var(--accent2);}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.main-content{max-width:1150px;margin:0 auto;padding:28px 20px;}
-.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:26px;width:fit-content;}
-.tab{padding:8px 20px;border-radius:7px;cursor:pointer;font-weight:700;font-size:13px;color:var(--muted);transition:all 0.2s;border:none;background:none;font-family:'Syne',sans-serif;}
-.tab.active{background:var(--surface2);color:var(--text);}
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
-.section-title{font-size:22px;font-weight:800;margin-bottom:4px;}
-.section-sub{color:var(--muted);font-size:12px;margin-bottom:22px;font-family:'Space Mono',monospace;}
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;}
-.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
-.stat-card.green::after{background:var(--accent);}
-.stat-card.red::after{background:var(--accent2);}
-.stat-card.yellow::after{background:var(--late);}
-.stat-card.blue::after{background:var(--accent3);}
-.stat-card.purple::after{background:var(--na);}
-.stat-card.grey::after{background:var(--muted);}
-.stat-num{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
-.stat-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
-.filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;}
-.filter-row .fg{display:flex;flex-direction:column;}
-.filter-row select,.filter-row input[type=text]{width:150px;margin-bottom:0;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
-.card-header h3{font-size:14px;font-weight:700;}
-table{width:100%;border-collapse:collapse;}
-thead th{background:var(--surface2);padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
-tbody tr{border-bottom:1px solid #1e2330;transition:background 0.15s;}
-tbody tr:last-child{border-bottom:none;}
-tbody tr:hover{background:var(--surface2);}
-tbody td{padding:11px 14px;font-size:13px;}
-.rollno{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEC Robotics Club</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
 
-/* STATUS BUTTONS */
-.status-btns{display:flex;gap:4px;flex-wrap:wrap;}
-.status-btn{padding:4px 11px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;font-family:'Syne',sans-serif;}
-.status-btn.sel-P{background:rgba(79,255,176,0.15);border-color:var(--accent);color:var(--accent);}
-.status-btn.sel-A{background:rgba(255,79,130,0.15);border-color:var(--accent2);color:var(--accent2);}
-.status-btn.sel-L{background:rgba(255,204,79,0.15);border-color:var(--late);color:var(--late);}
-.status-btn.sel-N{background:rgba(192,132,252,0.15);border-color:var(--na);color:var(--na);}
+    :root {
+      --bg: #0d0f14;
+      --surface: #161920;
+      --surface2: #1e2330;
+      --border: #2a3045;
+      --accent: #4fffb0;
+      --accent2: #ff4f82;
+      --accent3: #4f9fff;
+      --late: #ffcc4f;
+      --na: #c084fc;
+      --text: #e8eaf2;
+      --muted: #6b7394;
+    }
 
-/* BADGES */
-.badge{padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;}
-.badge-P{background:rgba(79,255,176,0.15);color:var(--accent);}
-.badge-A{background:rgba(255,79,130,0.15);color:var(--accent2);}
-.badge-L{background:rgba(255,204,79,0.15);color:var(--late);}
-.badge-N{background:rgba(192,132,252,0.15);color:var(--na);}
-.badge-sec{background:rgba(79,159,255,0.15);color:var(--accent3);}
-.badge-boy{background:rgba(79,159,255,0.12);color:#60b3ff;font-size:10px;}
-.badge-girl{background:rgba(255,79,130,0.12);color:#ff7faa;font-size:10px;}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-.submit-row{padding:14px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
-.quick-btns{display:flex;gap:7px;flex-wrap:wrap;}
-.h-entry{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
-.h-header{display:flex;align-items:center;justify-content:space-between;padding:13px 17px;cursor:pointer;transition:background 0.15s;}
-.h-header:hover{background:var(--surface2);}
-.h-date{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;}
-.h-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.h-body{display:none;border-top:1px solid var(--border);}
-.h-body.open{display:block;}
-.export-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:22px;}
-.export-panel-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:11px;}
-.export-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.range-btns{display:flex;gap:5px;flex-wrap:wrap;}
-.range-btn{padding:6px 13px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.15s;}
-.range-btn:hover{border-color:var(--accent3);color:var(--accent3);}
-.range-btn.active{background:rgba(79,159,255,0.15);border-color:var(--accent3);color:var(--accent3);}
-.custom-inputs{display:none;align-items:center;gap:8px;flex-wrap:wrap;}
-.custom-inputs.show{display:flex;}
-.custom-inputs input{width:140px;margin:0;}
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;}
-.form-card h3{font-size:15px;font-weight:800;margin-bottom:18px;}
-.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.form-row-2 input,.form-row-2 select{margin-bottom:0;}
-.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-.form-row-3 input,.form-row-3 select{margin-bottom:0;}
-.import-zone{border:2px dashed var(--border);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;margin-bottom:14px;}
-.import-zone:hover,.import-zone.drag{border-color:var(--accent3);background:rgba(79,159,255,0.05);}
-.import-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.s-row{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid #1e2330;}
-.s-row:last-child{border-bottom:none;}
-.s-name{font-weight:700;font-size:13px;}
-.s-meta{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
-.del-btn{background:none;border:1px solid transparent;color:var(--muted);cursor:pointer;padding:4px 9px;border-radius:5px;font-size:13px;transition:all 0.15s;}
-.del-btn:hover{border-color:var(--accent2);color:var(--accent2);}
-.info-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Space Mono',monospace;font-size:11px;margin-bottom:14px;word-break:break-all;line-height:1.7;}
-.banner{background:rgba(79,159,255,0.1);border:1px solid rgba(79,159,255,0.3);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:13px;display:flex;align-items:center;gap:10px;}
-.banner.warn{background:rgba(255,204,79,0.1);border-color:rgba(255,204,79,0.3);color:var(--late);}
-.banner.err{background:rgba(255,79,130,0.1);border-color:rgba(255,79,130,0.3);color:var(--accent2);}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+    }
 
-/* HOLIDAY BANNER */
-.holiday-bar{background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:13px;color:var(--na);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-.holiday-bar input[type=text]{width:180px;margin:0;border-color:rgba(192,132,252,0.4);}
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 30% 50%, #1a2040, var(--bg) 70%);
+    }
 
-.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:600;color:var(--accent);z-index:9999;transform:translateY(80px);opacity:0;transition:all 0.3s;max-width:320px;}
-.toast.show{transform:translateY(0);opacity:1;}
-.empty{padding:40px;text-align:center;color:var(--muted);font-size:13px;font-family:'Space Mono',monospace;}
-.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 400px;
+      position: relative;
+      overflow: hidden;
+    }
 
-/* Girl row highlight */
-tr.girl-row td:first-child{border-left:2px solid rgba(255,79,130,0.3);}
-tr.boy-row td:first-child{border-left:2px solid rgba(79,159,255,0.3);}
-</style>
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
+    }
+
+    .login-card h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .login-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 32px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    input[type=text],
+    input[type=password],
+    input[type=date],
+    select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 18px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    select option {
+      background: #1e2330;
+    }
+
+    .err-msg {
+      color: var(--accent2);
+      font-size: 12px;
+      margin: -12px 0 14px;
+      font-family: 'Space Mono', monospace;
+      display: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0f14;
+    }
+
+    .btn-primary:hover {
+      background: #3de89a;
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: var(--accent2);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-blue {
+      background: var(--accent3);
+      color: #fff;
+    }
+
+    .btn-blue:hover {
+      background: #3a8de8;
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 12px;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    #app {
+      display: none;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .topbar-brand span {
+      color: var(--accent);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .clock-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 11px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .sync-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .sync-dot.ok {
+      background: var(--accent);
+    }
+
+    .sync-dot.busy {
+      background: var(--late);
+      animation: pulse 1s infinite;
+    }
+
+    .sync-dot.err {
+      background: var(--accent2);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    .main-content {
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 26px;
+      width: fit-content;
+    }
+
+    .tab {
+      padding: 8px 20px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--muted);
+      transition: all 0.2s;
+      border: none;
+      background: none;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .tab.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 22px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    .stat-card.green::after {
+      background: var(--accent);
+    }
+
+    .stat-card.red::after {
+      background: var(--accent2);
+    }
+
+    .stat-card.yellow::after {
+      background: var(--late);
+    }
+
+    .stat-card.blue::after {
+      background: var(--accent3);
+    }
+
+    .stat-card.purple::after {
+      background: var(--na);
+    }
+
+    .stat-card.grey::after {
+      background: var(--muted);
+    }
+
+    .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .filter-row .fg {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .filter-row select,
+    .filter-row input[type=text] {
+      width: 150px;
+      margin-bottom: 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: var(--surface2);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #1e2330;
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--surface2);
+    }
+
+    tbody td {
+      padding: 11px 14px;
+      font-size: 13px;
+    }
+
+    .rollno {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* STATUS BUTTONS */
+    .status-btns {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .status-btn {
+      padding: 4px 11px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .status-btn.sel-P {
+      background: rgba(79, 255, 176, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .status-btn.sel-A {
+      background: rgba(255, 79, 130, 0.15);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .status-btn.sel-L {
+      background: rgba(255, 204, 79, 0.15);
+      border-color: var(--late);
+      color: var(--late);
+    }
+
+    .status-btn.sel-N {
+      background: rgba(192, 132, 252, 0.15);
+      border-color: var(--na);
+      color: var(--na);
+    }
+
+    /* BADGES */
+    .badge {
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .badge-P {
+      background: rgba(79, 255, 176, 0.15);
+      color: var(--accent);
+    }
+
+    .badge-A {
+      background: rgba(255, 79, 130, 0.15);
+      color: var(--accent2);
+    }
+
+    .badge-L {
+      background: rgba(255, 204, 79, 0.15);
+      color: var(--late);
+    }
+
+    .badge-N {
+      background: rgba(192, 132, 252, 0.15);
+      color: var(--na);
+    }
+
+    .badge-sec {
+      background: rgba(79, 159, 255, 0.15);
+      color: var(--accent3);
+    }
+
+    .badge-boy {
+      background: rgba(79, 159, 255, 0.12);
+      color: #60b3ff;
+      font-size: 10px;
+    }
+
+    .badge-girl {
+      background: rgba(255, 79, 130, 0.12);
+      color: #ff7faa;
+      font-size: 10px;
+    }
+
+    .submit-row {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .quick-btns {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .h-entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .h-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 17px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .h-header:hover {
+      background: var(--surface2);
+    }
+
+    .h-date {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .h-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .h-body {
+      display: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .h-body.open {
+      display: block;
+    }
+
+    .export-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 22px;
+    }
+
+    .export-panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 11px;
+    }
+
+    .export-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .range-btns {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .range-btn {
+      padding: 6px 13px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .range-btn:hover {
+      border-color: var(--accent3);
+      color: var(--accent3);
+    }
+
+    .range-btn.active {
+      background: rgba(79, 159, 255, 0.15);
+      border-color: var(--accent3);
+      color: var(--accent3);
+    }
+
+    .custom-inputs {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .custom-inputs.show {
+      display: flex;
+    }
+
+    .custom-inputs input {
+      width: 140px;
+      margin: 0;
+    }
+
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .form-card h3 {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-row-2 input,
+    .form-row-2 select {
+      margin-bottom: 0;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-row-3 input,
+    .form-row-3 select {
+      margin-bottom: 0;
+    }
+
+    .import-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .import-zone:hover,
+    .import-zone.drag {
+      border-color: var(--accent3);
+      background: rgba(79, 159, 255, 0.05);
+    }
+
+    .import-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .s-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 15px;
+      border-bottom: 1px solid #1e2330;
+    }
+
+    .s-row:last-child {
+      border-bottom: none;
+    }
+
+    .s-name {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .s-meta {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .del-btn {
+      background: none;
+      border: 1px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 9px;
+      border-radius: 5px;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+
+    .del-btn:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .info-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      margin-bottom: 14px;
+      word-break: break-all;
+      line-height: 1.7;
+    }
+
+    .banner {
+      background: rgba(79, 159, 255, 0.1);
+      border: 1px solid rgba(79, 159, 255, 0.3);
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .banner.warn {
+      background: rgba(255, 204, 79, 0.1);
+      border-color: rgba(255, 204, 79, 0.3);
+      color: var(--late);
+    }
+
+    .banner.err {
+      background: rgba(255, 79, 130, 0.1);
+      border-color: rgba(255, 79, 130, 0.3);
+      color: var(--accent2);
+    }
+
+    /* HOLIDAY BANNER */
+    .holiday-bar {
+      background: rgba(192, 132, 252, 0.1);
+      border: 1px solid rgba(192, 132, 252, 0.3);
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: var(--na);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .holiday-bar input[type=text] {
+      width: 180px;
+      margin: 0;
+      border-color: rgba(192, 132, 252, 0.4);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      z-index: 9999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+      max-width: 320px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* Girl row highlight */
+    tr.girl-row td:first-child {
+      border-left: 2px solid rgba(255, 79, 130, 0.3);
+    }
+
+    tr.boy-row td:first-child {
+      border-left: 2px solid rgba(79, 159, 255, 0.3);
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <h1>IEC Robotics Club</h1>
-    <p class="login-sub">// Google Sheets powered · private access</p>
-    <label class="field-label">Username</label>
-    <input type="text" id="login-user" placeholder="username" autocomplete="off">
-    <label class="field-label">Password</label>
-    <input type="password" id="login-pass" placeholder="password" onkeydown="if(event.key==='Enter')doLogin()">
-    <div class="err-msg" id="login-err">Invalid credentials</div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">Sign In</button>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app">
-  <div class="topbar">
-    <div class="topbar-brand">IEC<span>RC</span></div>
-    <div class="topbar-right">
-      <div class="sync-indicator">
-        <div class="sync-dot" id="sync-dot"></div>
-        <span id="sync-lbl" style="color:var(--muted);font-size:11px;font-family:'Space Mono',monospace;">idle</span>
-      </div>
-      <div class="clock-chip" id="live-clock"></div>
-      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <h1>IEC Robotics Club</h1>
+      <p class="login-sub">// Google Sheets powered · private access</p>
+      <label class="field-label">Username</label>
+      <input type="text" id="login-user" placeholder="username" autocomplete="off">
+      <label class="field-label">Password</label>
+      <input type="password" id="login-pass" placeholder="password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="err-msg" id="login-err">Invalid credentials</div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">Sign In</button>
     </div>
   </div>
 
-  <div class="main-content">
-    <div id="banner-wrap"></div>
-
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('take')">📋 Attendance</button>
-      <button class="tab" onclick="switchTab('history')">📅 History</button>
-      <button class="tab" onclick="switchTab('students')">👥 Students</button>
-      <button class="tab" onclick="switchTab('settings')">⚙ Settings</button>
-    </div>
-
-    <!-- TAKE ATTENDANCE -->
-    <div class="tab-panel active" id="tab-take">
-      <div class="section-title">Take Attendance</div>
-      <div class="section-sub" id="today-label">// loading date...</div>
-
-      <!-- Holiday Toggle Bar -->
-      <div class="holiday-bar" id="holiday-bar">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <span style="font-size:18px;">🔒</span>
-          <div>
-            <strong>Holiday / Security Day</strong>
-            <div style="font-size:11px;opacity:0.8;margin-top:2px;">Mark all girls as NA (Not Applicable) automatically</div>
-          </div>
+  <!-- APP -->
+  <div id="app">
+    <div class="topbar">
+      <div class="topbar-brand">IEC<span>RC</span></div>
+      <div class="topbar-right">
+        <div class="sync-indicator">
+          <div class="sync-dot" id="sync-dot"></div>
+          <span id="sync-lbl" style="color:var(--muted);font-size:11px;font-family:'Space Mono',monospace;">idle</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input type="text" id="holiday-name" placeholder="Holiday name (optional)" style="width:190px;margin:0;border-color:rgba(192,132,252,0.4);">
-          <button class="btn btn-sm" style="background:rgba(192,132,252,0.2);border:1px solid var(--na);color:var(--na);font-weight:700;" onclick="markGirlsNA()">Mark Girls NA</button>
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <div class="fg"><label class="field-label">Year</label>
-          <select id="f-year" onchange="renderTable()">
-            <option value="">All Years</option>
-            <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
-          </select>
-        </div>
-        <div class="fg"><label class="field-label">Section</label>
-          <select id="f-sec" onchange="renderTable()"><option value="">All Sections</option></select>
-        </div>
-        <div class="fg"><label class="field-label">Gender</label>
-          <select id="f-gen" onchange="renderTable()">
-            <option value="">All</option>
-            <option value="Boy">Boys Only</option>
-            <option value="Girl">Girls Only</option>
-          </select>
-        </div>
-        <div class="fg"><label class="field-label">Search</label>
-          <input type="text" id="f-q" placeholder="Name / Roll No" oninput="renderTable()" style="width:155px;margin:0;">
-        </div>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-card green"><div class="stat-num" id="sP">0</div><div class="stat-label">Present</div></div>
-        <div class="stat-card red"><div class="stat-num" id="sA">0</div><div class="stat-label">Absent</div></div>
-        <div class="stat-card yellow"><div class="stat-num" id="sL">0</div><div class="stat-label">Late</div></div>
-        <div class="stat-card purple"><div class="stat-num" id="sN">0</div><div class="stat-label">NA (Girls)</div></div>
-        <div class="stat-card grey"><div class="stat-num" id="sU">0</div><div class="stat-label">Unmarked</div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h3>Student List</h3>
-          <div class="quick-btns">
-            <button class="btn btn-ghost btn-sm" onclick="markAll('P')">All Present</button>
-            <button class="btn btn-ghost btn-sm" onclick="markAll('A')">All Absent</button>
-            <button class="btn btn-sm" style="background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.4);color:var(--na);font-weight:700;" onclick="markGirlsNA()">Girls → NA</button>
-          </div>
-        </div>
-        <div id="att-body"></div>
-        <div class="submit-row">
-          <span id="save-status" style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;"></span>
-          <button class="btn btn-primary" id="save-btn" onclick="saveAttendance()">💾 Save to Google Sheets</button>
-        </div>
+        <div class="clock-chip" id="live-clock"></div>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
       </div>
     </div>
 
-    <!-- HISTORY -->
-    <div class="tab-panel" id="tab-history">
-      <div class="section-title">Attendance History</div>
-      <div class="section-sub">// all records pulled live from Google Sheets</div>
-      <div class="export-panel">
-        <div class="export-panel-title">Export to Excel</div>
-        <div class="export-row">
-          <div class="range-btns">
-            <button class="range-btn active" onclick="setRange('all',this)">All Time</button>
-            <button class="range-btn" onclick="setRange('7',this)">Last 7 Days</button>
-            <button class="range-btn" onclick="setRange('30',this)">Last 30 Days</button>
-            <button class="range-btn" onclick="setRange('90',this)">Last 3 Months</button>
-            <button class="range-btn" onclick="setRange('custom',this)">Custom</button>
-          </div>
-          <div class="custom-inputs" id="custom-inputs">
-            <span class="field-label" style="margin:0">From</span>
-            <input type="date" id="r-from" onchange="updatePreview()">
-            <span class="field-label" style="margin:0">To</span>
-            <input type="date" id="r-to" onchange="updatePreview()">
-          </div>
-          <button class="btn btn-blue btn-sm" style="margin-left:auto;" onclick="exportExcel()">Download Excel</button>
-          <button class="btn btn-ghost btn-sm" onclick="loadHistory()">Refresh</button>
-        </div>
-        <div id="exp-preview" style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'Space Mono',monospace;"></div>
-      </div>
-      <div id="history-list"><div class="empty">Click Refresh to load history.</div></div>
-    </div>
+    <div class="main-content">
+      <div id="banner-wrap"></div>
 
-    <!-- STUDENTS -->
-    <div class="tab-panel" id="tab-students">
-      <div class="section-title">Manage Students</div>
-      <div class="section-sub">// add manually or import from CSV / Excel file</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
-        <div>
-          <div class="form-card" style="margin-bottom:16px;">
-            <h3>Import from CSV / Excel</h3>
-            <div class="import-zone" id="import-zone"
-              ondragover="event.preventDefault();this.classList.add('drag')"
-              ondragleave="this.classList.remove('drag')"
-              ondrop="handleDrop(event)">
-              <input type="file" accept=".csv,.xlsx,.xls" onchange="handleFile(this.files[0])">
-              <div style="font-size:26px;margin-bottom:8px;">📂</div>
-              <div style="font-size:13px;color:var(--muted);font-family:'Space Mono',monospace;">Drop file here or click to browse</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:4px;">Columns: Name, Roll Number, Year, Section, Gender</div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('take')">📋 Attendance</button>
+        <button class="tab" onclick="switchTab('history')">📅 History</button>
+        <button class="tab" onclick="switchTab('students')">👥 Students</button>
+        <button class="tab" onclick="switchTab('settings')">⚙ Settings</button>
+      </div>
+
+      <!-- TAKE ATTENDANCE -->
+      <div class="tab-panel active" id="tab-take">
+        <div class="section-title">Take Attendance</div>
+        <div class="section-sub" id="today-label">// loading date...</div>
+
+        <!-- Holiday Toggle Bar -->
+        <div class="holiday-bar" id="holiday-bar">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:18px;">🔒</span>
+            <div>
+              <strong>Holiday / Security Day</strong>
+              <div style="font-size:11px;opacity:0.8;margin-top:2px;">Mark all girls as NA (Not Applicable)
+                automatically</div>
             </div>
-            <div id="csv-info" style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;"></div>
           </div>
-          <div class="form-card">
-            <h3>Add Manually</h3>
-            <label class="field-label">Full Name</label>
-            <input type="text" id="n-name" placeholder="Student name">
-            <label class="field-label">Roll Number</label>
-            <input type="text" id="n-roll" placeholder="e.g. CS2301">
-            <div class="form-row-3" style="margin-bottom:18px;">
-              <div>
-                <label class="field-label">Year</label>
-                <select id="n-year" style="margin:0">
-                  <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
-                </select>
-              </div>
-              <div>
-                <label class="field-label">Section</label>
-                <input type="text" id="n-sec" placeholder="A / B / C" style="margin:0">
-              </div>
-              <div>
-                <label class="field-label">Gender</label>
-                <select id="n-gen" style="margin:0">
-                  <option value="Boy">Boy</option>
-                  <option value="Girl">Girl</option>
-                </select>
-              </div>
-            </div>
-            <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="text" id="holiday-name" placeholder="Holiday name (optional)"
+              style="width:190px;margin:0;border-color:rgba(192,132,252,0.4);">
+            <button class="btn btn-sm"
+              style="background:rgba(192,132,252,0.2);border:1px solid var(--na);color:var(--na);font-weight:700;"
+              onclick="markGirlsNA()">Mark Girls NA</button>
           </div>
         </div>
+
+        <div class="filter-row">
+          <div class="fg"><label class="field-label">Year</label>
+            <select id="f-year" onchange="renderTable()">
+              <option value="">All Years</option>
+              <option>1st Year</option>
+              <option>2nd Year</option>
+              <option>3rd Year</option>
+              <option>4th Year</option>
+            </select>
+          </div>
+          <div class="fg"><label class="field-label">Section</label>
+            <select id="f-sec" onchange="renderTable()">
+              <option value="">All Sections</option>
+            </select>
+          </div>
+          <div class="fg"><label class="field-label">Gender</label>
+            <select id="f-gen" onchange="renderTable()">
+              <option value="">All</option>
+              <option value="Boy">Boys Only</option>
+              <option value="Girl">Girls Only</option>
+            </select>
+          </div>
+          <div class="fg"><label class="field-label">Search</label>
+            <input type="text" id="f-q" placeholder="Name / Roll No" oninput="renderTable()"
+              style="width:155px;margin:0;">
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card green">
+            <div class="stat-num" id="sP">0</div>
+            <div class="stat-label">Present</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-num" id="sA">0</div>
+            <div class="stat-label">Absent</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-num" id="sL">0</div>
+            <div class="stat-label">Late</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-num" id="sN">0</div>
+            <div class="stat-label">NA (Girls)</div>
+          </div>
+          <div class="stat-card grey">
+            <div class="stat-num" id="sU">0</div>
+            <div class="stat-label">Unmarked</div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header">
-            <h3>All Students (<span id="s-count">0</span>)</h3>
-            <button class="btn btn-ghost btn-sm" onclick="loadStudents()">Refresh from Sheet</button>
+            <h3>Student List</h3>
+            <div class="quick-btns">
+              <button class="btn btn-ghost btn-sm" onclick="markAll('P')">All Present</button>
+              <button class="btn btn-ghost btn-sm" onclick="markAll('A')">All Absent</button>
+              <button class="btn btn-sm"
+                style="background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.4);color:var(--na);font-weight:700;"
+                onclick="markGirlsNA()">Girls → NA</button>
+            </div>
           </div>
-          <div id="student-list"><div class="empty">No students yet.</div></div>
+          <div id="att-body"></div>
+          <div class="submit-row">
+            <span id="save-status" style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;"></span>
+            <button class="btn btn-primary" id="save-btn" onclick="saveAttendance()">💾 Save to Google Sheets</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- SETTINGS -->
-    <div class="tab-panel" id="tab-settings">
-      <div class="section-title">Settings</div>
-      <div class="section-sub">// login credentials · sheet info</div>
-      <div class="settings-grid">
-        <div class="form-card">
-          <h3>Change Login</h3>
-          <label class="field-label">New Username</label>
-          <input type="text" id="set-u" placeholder="username">
-          <label class="field-label">New Password</label>
-          <input type="password" id="set-p" placeholder="password">
-          <label class="field-label">Confirm Password</label>
-          <input type="password" id="set-p2" placeholder="confirm">
-          <button class="btn btn-primary" onclick="saveCreds()">Update</button>
-        </div>
-        <div class="form-card">
-          <h3>Google Sheet Info</h3>
-          <div class="info-box">
-            Sheet ID:<br>
-            <span id="sid" style="color:var(--accent3);"></span><br><br>
-            Google Client ID:<br>
-            <span id="cid-display" style="color:var(--accent);"></span>
+      <!-- HISTORY -->
+      <div class="tab-panel" id="tab-history">
+        <div class="section-title">Attendance History</div>
+        <div class="section-sub">// all records pulled live from Google Sheets</div>
+        <div class="export-panel">
+          <div class="export-panel-title">Export to Excel</div>
+          <div class="export-row">
+            <div class="range-btns">
+              <button class="range-btn active" onclick="setRange('all',this)">All Time</button>
+              <button class="range-btn" onclick="setRange('7',this)">Last 7 Days</button>
+              <button class="range-btn" onclick="setRange('30',this)">Last 30 Days</button>
+              <button class="range-btn" onclick="setRange('90',this)">Last 3 Months</button>
+              <button class="range-btn" onclick="setRange('custom',this)">Custom</button>
+            </div>
+            <div class="custom-inputs" id="custom-inputs">
+              <span class="field-label" style="margin:0">From</span>
+              <input type="date" id="r-from" onchange="updatePreview()">
+              <span class="field-label" style="margin:0">To</span>
+              <input type="date" id="r-to" onchange="updatePreview()">
+            </div>
+            <button class="btn btn-blue btn-sm" style="margin-left:auto;" onclick="exportExcel()">Download
+              Excel</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadHistory()">Refresh</button>
           </div>
-          <a id="sheet-link" href="#" target="_blank" class="btn btn-blue btn-sm" style="text-decoration:none;margin-bottom:16px;">Open in Google Sheets</a>
+          <div id="exp-preview"
+            style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'Space Mono',monospace;"></div>
+        </div>
+        <div id="history-list">
+          <div class="empty">Click Refresh to load history.</div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div class="tab-panel" id="tab-students">
+        <div class="section-title">Manage Students</div>
+        <div class="section-sub">// add manually or import from CSV / Excel file</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
           <div>
-            <label class="field-label">Update Google Client ID</label>
-            <input type="text" id="set-cid" placeholder="paste your OAuth Client ID">
-            <button class="btn btn-ghost btn-sm" onclick="saveClientId()">Save Client ID</button>
+            <div class="form-card" style="margin-bottom:16px;">
+              <h3>Import from CSV / Excel</h3>
+              <div class="import-zone" id="import-zone" ondragover="event.preventDefault();this.classList.add('drag')"
+                ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+                <input type="file" accept=".csv,.xlsx,.xls" onchange="handleFile(this.files[0])">
+                <div style="font-size:26px;margin-bottom:8px;">📂</div>
+                <div style="font-size:13px;color:var(--muted);font-family:'Space Mono',monospace;">Drop file here or
+                  click to browse</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:4px;">Columns: Name, Roll Number, Year,
+                  Section, Gender</div>
+              </div>
+              <div id="csv-info" style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;"></div>
+            </div>
+            <div class="form-card">
+              <h3>Add Manually</h3>
+              <label class="field-label">Full Name</label>
+              <input type="text" id="n-name" placeholder="Student name">
+              <label class="field-label">Roll Number</label>
+              <input type="text" id="n-roll" placeholder="e.g. CS2301">
+              <div class="form-row-3" style="margin-bottom:18px;">
+                <div>
+                  <label class="field-label">Year</label>
+                  <select id="n-year" style="margin:0">
+                    <option>1st Year</option>
+                    <option>2nd Year</option>
+                    <option>3rd Year</option>
+                    <option>4th Year</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="field-label">Section</label>
+                  <input type="text" id="n-sec" placeholder="A / B / C" style="margin:0">
+                </div>
+                <div>
+                  <label class="field-label">Gender</label>
+                  <select id="n-gen" style="margin:0">
+                    <option value="Boy">Boy</option>
+                    <option value="Girl">Girl</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>All Students (<span id="s-count">0</span>)</h3>
+              <button class="btn btn-ghost btn-sm" onclick="loadStudents()">Refresh from Sheet</button>
+            </div>
+            <div id="student-list">
+              <div class="empty">No students yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="tab-panel" id="tab-settings">
+        <div class="section-title">Settings</div>
+        <div class="section-sub">// login credentials · sheet info</div>
+        <div class="settings-grid">
+          <div class="form-card">
+            <h3>Change Login</h3>
+            <label class="field-label">New Username</label>
+            <input type="text" id="set-u" placeholder="username">
+            <label class="field-label">New Password</label>
+            <input type="password" id="set-p" placeholder="password">
+            <label class="field-label">Confirm Password</label>
+            <input type="password" id="set-p2" placeholder="confirm">
+            <button class="btn btn-primary" onclick="saveCreds()">Update</button>
+          </div>
+          <div class="form-card">
+            <h3>Google Sheet Info</h3>
+            <div class="info-box">
+              Sheet ID:<br>
+              <span id="sid" style="color:var(--accent3);"></span><br><br>
+              Google Client ID:<br>
+              <span id="cid-display" style="color:var(--accent);"></span>
+            </div>
+            <a id="sheet-link" href="#" target="_blank" class="btn btn-blue btn-sm"
+              style="text-decoration:none;margin-bottom:16px;">Open in Google Sheets</a>
+            <div>
+              <label class="field-label">Update Google Client ID</label>
+              <input type="text" id="set-cid" placeholder="paste your OAuth Client ID">
+              <button class="btn btn-ghost btn-sm" onclick="saveClientId()">Save Client ID</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <div class="toast" id="toast"></div>
 
-<script>
-// ── CONFIG ──
-const SHEET_ID = '13osdYdSRSFGJY_YYpkMUOlJcOtDRemAH-mM2iObMExI';
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID;
+  <script>
+    // ── CONFIG ──
+    const SHEET_ID = '13osdYdSRSFGJY_YYpkMUOlJcOtDRemAH-mM2iObMExI';
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID;
 
-// ── STATE ──
-let creds = { user:'admin', pass:'welcome2iec' };
-let students = [];
-let historyData = [];
-let marks = {};       // roll -> 'P' | 'A' | 'L' | 'N'
-let exportRange = 'all';
-let gToken = null;
+    // ── STATE ──
+    let creds = { user: 'admin', pass: 'welcome2iec' };
+    let students = [];
+    let historyData = [];
+    let marks = {};       // roll -> 'P' | 'A' | 'L' | 'N'
+    let exportRange = 'all';
+    let gToken = null;
 
-// ── PERSIST ──
-function localLoad() {
-  try { creds = JSON.parse(localStorage.getItem('at_creds')) || creds; } catch(e){}
-  try { students = JSON.parse(localStorage.getItem('at_students')) || []; } catch(e){}
-}
-function localSave() {
-  localStorage.setItem('at_creds', JSON.stringify(creds));
-  localStorage.setItem('at_students', JSON.stringify(students));
-}
-function getClientId() { return localStorage.getItem('at_gcid') || ''; }
-function saveClientId() {
-  const v = document.getElementById('set-cid').value.trim();
-  if (!v) { toast('Paste a valid Client ID', true); return; }
-  localStorage.setItem('at_gcid', v);
-  document.getElementById('cid-display').textContent = v;
-  gToken = null;
-  toast('Client ID saved! Click Authorize to connect.');
-  document.getElementById('set-cid').value = '';
-}
-
-// ── AUTH ──
-function doLogin() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value;
-  if (u === creds.user && p === creds.pass) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
-  } else {
-    document.getElementById('login-err').style.display = 'block';
-  }
-}
-function logout() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  gToken = null;
-}
-
-// ── INIT ──
-function initApp() {
-  const now = new Date();
-  document.getElementById('today-label').textContent =
-    '// ' + now.toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  document.getElementById('sid').textContent = SHEET_ID;
-  document.getElementById('cid-display').textContent = getClientId() || '(not set)';
-  document.getElementById('sheet-link').href = SHEET_URL + '/edit';
-  populateSec(); renderTable(); renderStudentList();
-  connectSheets();
-}
-
-// ── GOOGLE SHEETS AUTH ──
-async function loadGIS() {
-  if (window.google?.accounts) return;
-  await new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  });
-}
-async function getToken(forcePrompt) {
-  return gToken;
-}
-async function connectSheets() {
-  const cid = getClientId();
-  if (!cid) { showBanner('Google Client ID not set. Go to Settings tab to add it.','warn'); addAuthBtn(); return; }
-  setSyncState('busy','connecting...');
-  await loadGIS(); // pre-load the script so the click handler is synchronous
-  if (!gToken) { 
-    setSyncState('err','auth needed'); 
-    addAuthBtn(); 
-    return; 
-  }
-  try {
-    await ensureSheets();
-    await loadStudents();
-  } catch(e) { setSyncState('err','auth failed'); addAuthBtn(); }
-}
-function addAuthBtn() {
-  const wrap = document.getElementById('banner-wrap');
-  if (wrap.querySelector('.auth-btn')) return;
-  const btn = document.createElement('button');
-  btn.className = 'btn btn-blue auth-btn';
-  btn.style.marginBottom = '16px';
-  btn.textContent = 'Authorize Google Sheets Access';
-  btn.onclick = () => {
-    if (!window.google?.accounts) {
-       toast('Google Auth library still loading...', true);
-       return;
+    // ── PERSIST ──
+    function localLoad() {
+      try { creds = JSON.parse(localStorage.getItem('at_creds')) || creds; } catch (e) { }
+      try { students = JSON.parse(localStorage.getItem('at_students')) || []; } catch (e) { }
     }
-    gToken = null; btn.textContent = 'Authorizing...'; btn.disabled = true;
-    try {
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: getClientId(),
-        scope: 'https://www.googleapis.com/auth/spreadsheets',
-        callback: async r => {
-          if (r.error) {
-            console.error('OAuth callback error:', r.error);
-            btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
-            toast('Auth failed.', true);
-          } else {
-            gToken = r.access_token || null; 
-            await ensureSheets(); await loadStudents();
-            btn.remove(); clearBanners();
-          }
-        },
-        error_callback: err => {
-          console.error('OAuth popup error:', err);
-          btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
-          toast('Popup blocked or closed. Please allow popups.', true);
-        }
+    function localSave() {
+      localStorage.setItem('at_creds', JSON.stringify(creds));
+      localStorage.setItem('at_students', JSON.stringify(students));
+    }
+    function getClientId() { return localStorage.getItem('at_gcid') || ''; }
+    function saveClientId() {
+      const v = document.getElementById('set-cid').value.trim();
+      if (!v) { toast('Paste a valid Client ID', true); return; }
+      localStorage.setItem('at_gcid', v);
+      document.getElementById('cid-display').textContent = v;
+      gToken = null;
+      toast('Client ID saved! Click Authorize to connect.');
+      document.getElementById('set-cid').value = '';
+    }
+
+    // ── AUTH ──
+    function doLogin() {
+      const u = document.getElementById('login-user').value.trim();
+      const p = document.getElementById('login-pass').value;
+      if (u === creds.user && p === creds.pass) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        initApp();
+      } else {
+        document.getElementById('login-err').style.display = 'block';
+      }
+    }
+    function logout() {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-user').value = '';
+      document.getElementById('login-pass').value = '';
+      gToken = null;
+    }
+
+    // ── INIT ──
+    function initApp() {
+      const now = new Date();
+
+      document.getElementById('today-label').textContent =
+        '// ' + now.toLocaleDateString('en-IN', {
+          weekday: 'long',
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        });
+
+      document.getElementById('sid').textContent = SHEET_ID;
+      document.getElementById('cid-display').textContent = getClientId() || '(not set)';
+      document.getElementById('sheet-link').href = SHEET_URL + '/edit';
+
+      populateSec();
+      renderTable();
+      renderStudentList();
+
+      // ❌ REMOVE connectSheets()
+
+      // ✅ ALWAYS show auth button if not connected
+      addAuthBtn();
+    }
+    // ── GOOGLE SHEETS AUTH ──
+    async function loadGIS() {
+      if (window.google?.accounts) return;
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://accounts.google.com/gsi/client';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
       });
-      // Synchronous call from the click event: avoids the popup blocker!
-      client.requestAccessToken({ prompt: 'consent' });
-    } catch(err) {
-      console.error('OAuth request error:', err);
-      btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
     }
-  };
-  wrap.prepend(btn);
-}
-
-// ── SHEETS API ──
-async function sheetsReq(path, method, body) {
-  const token = await getToken(false);
-  if (!token) throw new Error('No auth token');
-  const opts = { method: method||'GET', headers: {'Authorization':'Bearer '+token,'Content-Type':'application/json'} };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+path, opts);
-  if (res.status===401) { gToken=null; throw new Error('Token expired'); }
-  if (!res.ok) throw new Error('Sheets API '+res.status);
-  return res.json();
-}
-
-async function ensureSheets() {
-  setSyncState('busy','checking...');
-  const meta = await sheetsReq('');
-  const names = meta.sheets.map(s=>s.properties.title);
-  const toCreate = [];
-  if (!names.includes('Records')) toCreate.push({ addSheet:{properties:{title:'Records'}} });
-  if (!names.includes('Students')) toCreate.push({ addSheet:{properties:{title:'Students'}} });
-  if (toCreate.length) {
-    await sheetsReq(':batchUpdate','POST',{ requests:toCreate });
-    const data = [];
-    // Records now has 8 columns including Gender
-    if (!names.includes('Records'))
-      data.push({ range:'Records!A1:H1', values:[['Date','Time','Roll Number','Student Name','Year','Section','Gender','Status']] });
-    // Students has 5 columns including Gender
-    if (!names.includes('Students'))
-      data.push({ range:'Students!A1:E1', values:[['Name','Roll Number','Year','Section','Gender']] });
-    if (data.length) await sheetsReq('/values:batchUpdate','POST',{valueInputOption:'RAW',data});
-  }
-  setSyncState('ok','connected');
-}
-
-async function loadStudents() {
-  setSyncState('busy','loading...');
-  try {
-    const res = await sheetsReq('/values/Students!A:E');
-    const vals = (res.values||[]).slice(1);
-    if (vals.length) {
-      students = vals.map(r=>({ name:r[0]||'', roll:r[1]||'', year:r[2]||'', section:r[3]||'', gender:r[4]||'Boy' }))
-                     .filter(s=>s.roll);
-      localSave();
+    async function getToken(forcePrompt) {
+      return gToken;
     }
-    setSyncState('ok','synced');
-  } catch(e) { setSyncState('err','load failed'); }
-  populateSec(); renderStudentList(); renderTable();
-}
+    async function connectSheets() {
+      const cid = getClientId();
+      if (!cid) { showBanner('Google Client ID not set. Go to Settings tab to add it.', 'warn'); addAuthBtn(); return; }
+      setSyncState('busy', 'connecting...');
+      await loadGIS(); // pre-load the script so the click handler is synchronous
+      if (!gToken) {
+        setSyncState('err', 'auth needed');
+        addAuthBtn();
+        return;
+      }
+      try {
+        await ensureSheets();
+        await loadStudents();
+      } catch (e) { setSyncState('err', 'auth failed'); addAuthBtn(); }
+    }
+    function addAuthBtn() {
+      const wrap = document.getElementById('banner-wrap');
+      if (wrap.querySelector('.auth-btn')) return;
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-blue auth-btn';
+      btn.style.marginBottom = '16px';
+      btn.textContent = 'Authorize Google Sheets Access';
+      btn.onclick = () => {
+        if (!window.google?.accounts) {
+          toast('Google Auth library still loading...', true);
+          return;
+        }
+        gToken = null; btn.textContent = 'Authorizing...'; btn.disabled = true;
+        try {
+          const client = google.accounts.oauth2.initTokenClient({
+            client_id: getClientId(),
+            scope: 'https://www.googleapis.com/auth/spreadsheets',
+            callback: async r => {
+              if (r.error) {
+                console.error('OAuth callback error:', r.error);
+                btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
+                toast('Auth failed.', true);
+              } else {
+                gToken = r.access_token || null;
+                await ensureSheets(); await loadStudents();
+                btn.remove(); clearBanners();
+              }
+            },
+            error_callback: err => {
+              console.error('OAuth popup error:', err);
+              btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
+              toast('Popup blocked or closed. Please allow popups.', true);
+            }
+          });
+          // Synchronous call from the click event: avoids the popup blocker!
+          client.requestAccessToken({ prompt: 'consent' });
+        } catch (err) {
+          console.error('OAuth request error:', err);
+          btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
+        }
+      };
+      wrap.prepend(btn);
+    }
 
-async function loadHistory() {
-  document.getElementById('history-list').innerHTML='<div class="empty">Loading from Google Sheets...</div>';
-  setSyncState('busy','loading history...');
-  try {
-    const res = await sheetsReq('/values/Records!A:H');
-    const vals = (res.values||[]).slice(1);
-    const sessions = {};
-    vals.forEach(r => {
-      const key = (r[0]||'')+'__'+(r[1]||'');
-      if (!sessions[key]) sessions[key]={date:r[0]||'',time:r[1]||'',records:[]};
-      sessions[key].records.push({roll:r[2]||'',name:r[3]||'',year:r[4]||'',section:r[5]||'',gender:r[6]||'',status:r[7]||''});
-    });
-    historyData = Object.values(sessions).sort((a,b)=>b.date.localeCompare(a.date));
-    setSyncState('ok','synced');
-    renderHistory(); updatePreview();
-  } catch(e) {
-    setSyncState('err','failed');
-    document.getElementById('history-list').innerHTML='<div class="empty">Could not load. Authorize access first.</div>';
-  }
-}
+    // ── SHEETS API ──
+    async function sheetsReq(path, method, body) {
+      const token = await getToken(false);
+      if (!token) throw new Error('No auth token');
+      const opts = { method: method || 'GET', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + path, opts);
+      if (res.status === 401) { gToken = null; throw new Error('Token expired'); }
+      if (!res.ok) throw new Error('Sheets API ' + res.status);
+      return res.json();
+    }
 
-// ── SAVE ATTENDANCE ──
-async function saveAttendance() {
-  if (document.getElementById('save-btn').disabled) return;
-  await loadHistory();
-  const list = getFiltered();
-  // Auto-mark unmarked: Girls → NA if holiday bar has a name, else Absent
-  const holidayName = document.getElementById('holiday-name').value.trim();
-  const unmarked = list.filter(s=>!marks[s.roll]);
-  unmarked.forEach(s => {
-    marks[s.roll] = (s.gender==='Girl' && holidayName) ? 'N' : 'A';
-  });
+    async function ensureSheets() {
+      setSyncState('busy', 'checking...');
+      const meta = await sheetsReq('');
+      const names = meta.sheets.map(s => s.properties.title);
+      const toCreate = [];
+      if (!names.includes('Records')) toCreate.push({ addSheet: { properties: { title: 'Records' } } });
+      if (!names.includes('Students')) toCreate.push({ addSheet: { properties: { title: 'Students' } } });
+      if (toCreate.length) {
+        await sheetsReq(':batchUpdate', 'POST', { requests: toCreate });
+        const data = [];
+        // Records now has 8 columns including Gender
+        if (!names.includes('Records'))
+          data.push({ range: 'Records!A1:H1', values: [['Date', 'Time', 'Roll Number', 'Student Name', 'Year', 'Section', 'Gender', 'Status']] });
+        // Students has 5 columns including Gender
+        if (!names.includes('Students'))
+          data.push({ range: 'Students!A1:E1', values: [['Name', 'Roll Number', 'Year', 'Section', 'Gender']] });
+        if (data.length) await sheetsReq('/values:batchUpdate', 'POST', { valueInputOption: 'RAW', data });
+      }
+      setSyncState('ok', 'connected');
+    }
 
-  const now = new Date();
-  const date = now.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const alreadySaved = historyData.some(s=>s.date===date);
-  if (alreadySaved && !confirm("Today's attendance already saved. Save again?")) return;
+    async function loadStudents() {
+      setSyncState('busy', 'loading...');
+      try {
+        const res = await sheetsReq('/values/Students!A:E');
+        const vals = (res.values || []).slice(1);
+        if (vals.length) {
+          students = vals.map(r => ({ name: r[0] || '', roll: r[1] || '', year: r[2] || '', section: r[3] || '', gender: r[4] || 'Boy' }))
+            .filter(s => s.roll);
+          localSave();
+        }
+        setSyncState('ok', 'synced');
+      } catch (e) { setSyncState('err', 'load failed'); }
+      populateSec(); renderStudentList(); renderTable();
+    }
 
-  const time = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    async function loadHistory() {
+      document.getElementById('history-list').innerHTML = '<div class="empty">Loading from Google Sheets...</div>';
+      setSyncState('busy', 'loading history...');
+      try {
+        const res = await sheetsReq('/values/Records!A:H');
+        const vals = (res.values || []).slice(1);
+        const sessions = {};
+        vals.forEach(r => {
+          const key = (r[0] || '') + '__' + (r[1] || '');
+          if (!sessions[key]) sessions[key] = { date: r[0] || '', time: r[1] || '', records: [] };
+          sessions[key].records.push({ roll: r[2] || '', name: r[3] || '', year: r[4] || '', section: r[5] || '', gender: r[6] || '', status: r[7] || '' });
+        });
+        historyData = Object.values(sessions).sort((a, b) => b.date.localeCompare(a.date));
+        setSyncState('ok', 'synced');
+        renderHistory(); updatePreview();
+      } catch (e) {
+        setSyncState('err', 'failed');
+        document.getElementById('history-list').innerHTML = '<div class="empty">Could not load. Authorize access first.</div>';
+      }
+    }
 
-  // Build rows for ALL students with Gender column
-  const rows = students.map(s => {
-    let status;
-    const m = marks[s.roll];
-    if (m==='P') status='Present';
-    else if (m==='L') status='Late';
-    else if (m==='N') status='NA';
-    else status='Absent';
-    return [date, time, s.roll, s.name, s.year, s.section, s.gender||'Boy', status];
-  });
+    // ── SAVE ATTENDANCE ──
+    async function saveAttendance() {
+      if (document.getElementById('save-btn').disabled) return;
+      await loadHistory();
+      const list = getFiltered();
+      // Auto-mark unmarked: Girls → NA if holiday bar has a name, else Absent
+      const holidayName = document.getElementById('holiday-name').value.trim();
+      const unmarked = list.filter(s => !marks[s.roll]);
+      unmarked.forEach(s => {
+        marks[s.roll] = (s.gender === 'Girl' && holidayName) ? 'N' : 'A';
+      });
 
-  document.getElementById('save-btn').disabled=true;
-  document.getElementById('save-status').textContent='Saving...';
-  setSyncState('busy','saving...');
+      const now = new Date();
+      const date = now.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const alreadySaved = historyData.some(s => s.date === date);
+      if (alreadySaved && !confirm("Today's attendance already saved. Save again?")) return;
 
-  try {
-    await sheetsReq('/values/Records!A:H:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS','POST',{values:rows});
-    marks={};
-    renderTable();
-    setSyncState('ok','saved');
-    document.getElementById('save-status').textContent='Saved at '+time;
-    toast('Attendance saved to Google Sheets!');
-  } catch(e) {
-    setSyncState('err','failed');
-    document.getElementById('save-status').textContent='Save failed';
-    toast('Save failed: '+e.message,true);
-  } finally {
-    document.getElementById('save-btn').disabled=false;
-  }
-}
+      const time = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-// ── MARK GIRLS NA ──
-function markGirlsNA() {
-  let count = 0;
-  students.forEach(s => {
-    if (s.gender==='Girl') { marks[s.roll]='N'; count++; }
-  });
-  renderTable();
-  toast(count + ' girls marked as NA');
-}
+      // Build rows for ALL students with Gender column
+      const rows = students.map(s => {
+        let status;
+        const m = marks[s.roll];
+        if (m === 'P') status = 'Present';
+        else if (m === 'L') status = 'Late';
+        else if (m === 'N') status = 'NA';
+        else status = 'Absent';
+        return [date, time, s.roll, s.name, s.year, s.section, s.gender || 'Boy', status];
+      });
 
-// ── ADD STUDENT ──
-async function addStudent() {
-  const name=document.getElementById('n-name').value.trim();
-  const roll=document.getElementById('n-roll').value.trim();
-  const year=document.getElementById('n-year').value;
-  const section=document.getElementById('n-sec').value.trim().toUpperCase();
-  const gender=document.getElementById('n-gen').value;
-  if (!name||!roll||!section) { toast('Fill all fields',true); return; }
-  if (students.find(s=>s.roll===roll)) { toast('Roll already exists',true); return; }
-  const s={name,roll,year,section,gender};
-  students.push(s);
-  students.sort((a,b)=>a.roll.localeCompare(b.roll));
-  localSave(); renderStudentList(); renderTable(); populateSec();
-  setSyncState('busy','saving...');
-  try {
-    await sheetsReq('/values/Students!A:E:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS','POST',{values:[[name,roll,year,section,gender]]});
-    setSyncState('ok','saved');
-    toast('Student added!');
-  } catch(e) { setSyncState('err','sheet error'); toast('Added locally, sheet sync failed.',true); }
-  document.getElementById('n-name').value='';
-  document.getElementById('n-roll').value='';
-  document.getElementById('n-sec').value='';
-}
+      document.getElementById('save-btn').disabled = true;
+      document.getElementById('save-status').textContent = 'Saving...';
+      setSyncState('busy', 'saving...');
 
-// ── FILE IMPORT ──
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('import-zone').classList.remove('drag');
-  const f=e.dataTransfer.files[0];
-  if (f) handleFile(f);
-}
-async function handleFile(file) {
-  if (!file) return;
-  const name=file.name.toLowerCase();
-  if (name.endsWith('.csv')) { const text=await file.text(); parseCSVText(text); return; }
-  if (name.endsWith('.xlsx')||name.endsWith('.xls')) {
-    const data=await file.arrayBuffer();
-    const wb=XLSX.read(data);
-    const sheet=wb.Sheets[wb.SheetNames[0]];
-    processImportRows(XLSX.utils.sheet_to_json(sheet));
-    return;
-  }
-  toast('Unsupported file format',true);
-}
-function parseCSVText(text) {
-  const lines=text.trim().split('\n');
-  const hdrs=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
-  const ni=hdrs.findIndex(h=>h.includes('name'));
-  const ri=hdrs.findIndex(h=>h.includes('roll'));
-  const yi=hdrs.findIndex(h=>h.includes('year'));
-  const si=hdrs.findIndex(h=>h.includes('section')||h==='sec');
-  const gi=hdrs.findIndex(h=>h.includes('gender')||h==='sex');
-  if (ni<0||ri<0) { toast('Need Name and Roll Number columns',true); return; }
-  const rows=[];
-  for (let i=1;i<lines.length;i++) {
-    const c=lines[i].split(',').map(x=>x.trim().replace(/^"|"$/g,''));
-    if (!c[ni]||!c[ri]) continue;
-    const gRaw=(gi>=0?c[gi]:'').toLowerCase();
-    rows.push({ 'Student Name':c[ni], 'Roll Number':c[ri], 'Year':yi>=0?c[yi]:'1st Year', 'Section':si>=0?c[si]:'A', 'Gender':gRaw.includes('girl')||gRaw==='f'||gRaw==='female'?'Girl':'Boy' });
-  }
-  processImportRows(rows);
-}
-function processImportRows(rows) {
-  const newS=[];
-  rows.forEach(r=>{
-    let roll=r['Roll Number']||r['Roll']||r['roll'];
-    if (roll!==undefined) roll=String(roll).trim().replace('.0','');
-    const name=(r['Student Name']||r['Name']||r['name']||'').toString().trim();
-    const year=(r['Year']||'1st Year').toString().trim();
-    const section=(r['Section']||'A').toString().trim().toUpperCase();
-    const gRaw=(r['Gender']||r['gender']||r['Sex']||'').toString().toLowerCase();
-    const gender=gRaw.includes('girl')||gRaw==='f'||gRaw==='female'?'Girl':'Boy';
-    if (!name||!roll) return;
-    if (students.some(s=>s.roll===roll)) return;
-    newS.push({name,roll,year,section,gender});
-  });
-  if (!newS.length) { toast('No new students found',true); return; }
-  document.getElementById('csv-info').textContent='Importing '+newS.length+' students...';
-  students.push(...newS);
-  students.sort((a,b)=>a.roll.localeCompare(b.roll));
-  localSave(); renderStudentList(); renderTable(); populateSec();
-  setSyncState('busy','importing...');
-  sheetsReq('/values/Students!A:E:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS','POST',{
-    values:newS.map(s=>[s.name,s.roll,s.year,s.section,s.gender])
-  }).then(()=>{
-    setSyncState('ok','done');
-    toast(newS.length+' students imported!');
-    document.getElementById('csv-info').textContent=newS.length+' students imported successfully.';
-  }).catch(()=>{
-    setSyncState('err','sync failed');
-    toast(newS.length+' added locally. Sheet sync failed.',true);
-  });
-}
+      try {
+        await sheetsReq('/values/Records!A:H:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 'POST', { values: rows });
+        marks = {};
+        renderTable();
+        setSyncState('ok', 'saved');
+        document.getElementById('save-status').textContent = 'Saved at ' + time;
+        toast('Attendance saved to Google Sheets!');
+      } catch (e) {
+        setSyncState('err', 'failed');
+        document.getElementById('save-status').textContent = 'Save failed';
+        toast('Save failed: ' + e.message, true);
+      } finally {
+        document.getElementById('save-btn').disabled = false;
+      }
+    }
 
-function removeStudent(roll) {
-  if (!confirm('Remove from local list? (Delete from Google Sheet manually if needed)')) return;
-  students=students.filter(s=>s.roll!==roll);
-  delete marks[roll];
-  localSave(); renderStudentList(); renderTable(); populateSec();
-}
+    // ── MARK GIRLS NA ──
+    function markGirlsNA() {
+      let count = 0;
+      students.forEach(s => {
+        if (s.gender === 'Girl') { marks[s.roll] = 'N'; count++; }
+      });
+      renderTable();
+      toast(count + ' girls marked as NA');
+    }
 
-function renderStudentList() {
-  document.getElementById('s-count').textContent=students.length;
-  const el=document.getElementById('student-list');
-  if (!students.length) { el.innerHTML='<div class="empty">No students yet.</div>'; return; }
-  el.innerHTML=students.map(s=>`
+    // ── ADD STUDENT ──
+    async function addStudent() {
+      const name = document.getElementById('n-name').value.trim();
+      const roll = document.getElementById('n-roll').value.trim();
+      const year = document.getElementById('n-year').value;
+      const section = document.getElementById('n-sec').value.trim().toUpperCase();
+      const gender = document.getElementById('n-gen').value;
+      if (!name || !roll || !section) { toast('Fill all fields', true); return; }
+      if (students.find(s => s.roll === roll)) { toast('Roll already exists', true); return; }
+      const s = { name, roll, year, section, gender };
+      students.push(s);
+      students.sort((a, b) => a.roll.localeCompare(b.roll));
+      localSave(); renderStudentList(); renderTable(); populateSec();
+      setSyncState('busy', 'saving...');
+      try {
+        await sheetsReq('/values/Students!A:E:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 'POST', { values: [[name, roll, year, section, gender]] });
+        setSyncState('ok', 'saved');
+        toast('Student added!');
+      } catch (e) { setSyncState('err', 'sheet error'); toast('Added locally, sheet sync failed.', true); }
+      document.getElementById('n-name').value = '';
+      document.getElementById('n-roll').value = '';
+      document.getElementById('n-sec').value = '';
+    }
+
+    // ── FILE IMPORT ──
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('import-zone').classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if (f) handleFile(f);
+    }
+    async function handleFile(file) {
+      if (!file) return;
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.csv')) { const text = await file.text(); parseCSVText(text); return; }
+      if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data);
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        processImportRows(XLSX.utils.sheet_to_json(sheet));
+        return;
+      }
+      toast('Unsupported file format', true);
+    }
+    function parseCSVText(text) {
+      const lines = text.trim().split('\n');
+      const hdrs = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+      const ni = hdrs.findIndex(h => h.includes('name'));
+      const ri = hdrs.findIndex(h => h.includes('roll'));
+      const yi = hdrs.findIndex(h => h.includes('year'));
+      const si = hdrs.findIndex(h => h.includes('section') || h === 'sec');
+      const gi = hdrs.findIndex(h => h.includes('gender') || h === 'sex');
+      if (ni < 0 || ri < 0) { toast('Need Name and Roll Number columns', true); return; }
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const c = lines[i].split(',').map(x => x.trim().replace(/^"|"$/g, ''));
+        if (!c[ni] || !c[ri]) continue;
+        const gRaw = (gi >= 0 ? c[gi] : '').toLowerCase();
+        rows.push({ 'Student Name': c[ni], 'Roll Number': c[ri], 'Year': yi >= 0 ? c[yi] : '1st Year', 'Section': si >= 0 ? c[si] : 'A', 'Gender': gRaw.includes('girl') || gRaw === 'f' || gRaw === 'female' ? 'Girl' : 'Boy' });
+      }
+      processImportRows(rows);
+    }
+    function processImportRows(rows) {
+      const newS = [];
+      rows.forEach(r => {
+        let roll = r['Roll Number'] || r['Roll'] || r['roll'];
+        if (roll !== undefined) roll = String(roll).trim().replace('.0', '');
+        const name = (r['Student Name'] || r['Name'] || r['name'] || '').toString().trim();
+        const year = (r['Year'] || '1st Year').toString().trim();
+        const section = (r['Section'] || 'A').toString().trim().toUpperCase();
+        const gRaw = (r['Gender'] || r['gender'] || r['Sex'] || '').toString().toLowerCase();
+        const gender = gRaw.includes('girl') || gRaw === 'f' || gRaw === 'female' ? 'Girl' : 'Boy';
+        if (!name || !roll) return;
+        if (students.some(s => s.roll === roll)) return;
+        newS.push({ name, roll, year, section, gender });
+      });
+      if (!newS.length) { toast('No new students found', true); return; }
+      document.getElementById('csv-info').textContent = 'Importing ' + newS.length + ' students...';
+      students.push(...newS);
+      students.sort((a, b) => a.roll.localeCompare(b.roll));
+      localSave(); renderStudentList(); renderTable(); populateSec();
+      setSyncState('busy', 'importing...');
+      sheetsReq('/values/Students!A:E:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', 'POST', {
+        values: newS.map(s => [s.name, s.roll, s.year, s.section, s.gender])
+      }).then(() => {
+        setSyncState('ok', 'done');
+        toast(newS.length + ' students imported!');
+        document.getElementById('csv-info').textContent = newS.length + ' students imported successfully.';
+      }).catch(() => {
+        setSyncState('err', 'sync failed');
+        toast(newS.length + ' added locally. Sheet sync failed.', true);
+      });
+    }
+
+    function removeStudent(roll) {
+      if (!confirm('Remove from local list? (Delete from Google Sheet manually if needed)')) return;
+      students = students.filter(s => s.roll !== roll);
+      delete marks[roll];
+      localSave(); renderStudentList(); renderTable(); populateSec();
+    }
+
+    function renderStudentList() {
+      document.getElementById('s-count').textContent = students.length;
+      const el = document.getElementById('student-list');
+      if (!students.length) { el.innerHTML = '<div class="empty">No students yet.</div>'; return; }
+      el.innerHTML = students.map(s => `
     <div class="s-row">
       <div>
-        <div class="s-name">${s.name} <span class="badge badge-${s.gender==='Girl'?'girl':'boy'}">${s.gender||'Boy'}</span></div>
+        <div class="s-name">${s.name} <span class="badge badge-${s.gender === 'Girl' ? 'girl' : 'boy'}">${s.gender || 'Boy'}</span></div>
         <div class="s-meta">${s.roll} · ${s.year} · Sec ${s.section}</div>
       </div>
       <button class="del-btn" onclick="removeStudent('${s.roll}')">🗑</button>
     </div>`).join('');
-}
+    }
 
-// ── ATTENDANCE TABLE ──
-function getFiltered() {
-  const yr=document.getElementById('f-year').value;
-  const sec=document.getElementById('f-sec').value;
-  const gen=document.getElementById('f-gen').value;
-  const q=(document.getElementById('f-q').value||'').toLowerCase();
-  return students.filter(s=>
-    (!yr||s.year===yr)&&(!sec||s.section===sec)&&(!gen||s.gender===gen)&&
-    (!q||s.name.toLowerCase().includes(q)||s.roll.toLowerCase().includes(q))
-  );
-}
+    // ── ATTENDANCE TABLE ──
+    function getFiltered() {
+      const yr = document.getElementById('f-year').value;
+      const sec = document.getElementById('f-sec').value;
+      const gen = document.getElementById('f-gen').value;
+      const q = (document.getElementById('f-q').value || '').toLowerCase();
+      return students.filter(s =>
+        (!yr || s.year === yr) && (!sec || s.section === sec) && (!gen || s.gender === gen) &&
+        (!q || s.name.toLowerCase().includes(q) || s.roll.toLowerCase().includes(q))
+      );
+    }
 
-function renderTable() {
-  const list=getFiltered();
-  const body=document.getElementById('att-body');
-  if (!list.length) { body.innerHTML='<div class="empty">No students. Add in Students tab.</div>'; updateStats([]); return; }
-  let h='<table><thead><tr><th>#</th><th>Roll</th><th>Name</th><th>Year</th><th>Sec</th><th>Gender</th><th>Status</th></tr></thead><tbody>';
-  list.forEach((s,i)=>{
-    const c=marks[s.roll]||'';
-    const isGirl=s.gender==='Girl';
-    // Girls get P, A, L, N buttons; Boys get P, A, L
-    const naBtn=isGirl?`<button class="status-btn ${c==='N'?'sel-N':''}" onclick="setMark('${s.roll}','N')">NA</button>`:'';
-    h+=`<tr class="${isGirl?'girl-row':'boy-row'}">
-      <td style="color:var(--muted);font-size:11px">${i+1}</td>
+    function renderTable() {
+      const list = getFiltered();
+      const body = document.getElementById('att-body');
+      if (!list.length) { body.innerHTML = '<div class="empty">No students. Add in Students tab.</div>'; updateStats([]); return; }
+      let h = '<table><thead><tr><th>#</th><th>Roll</th><th>Name</th><th>Year</th><th>Sec</th><th>Gender</th><th>Status</th></tr></thead><tbody>';
+      list.forEach((s, i) => {
+        const c = marks[s.roll] || '';
+        const isGirl = s.gender === 'Girl';
+        // Girls get P, A, L, N buttons; Boys get P, A, L
+        const naBtn = isGirl ? `<button class="status-btn ${c === 'N' ? 'sel-N' : ''}" onclick="setMark('${s.roll}','N')">NA</button>` : '';
+        h += `<tr class="${isGirl ? 'girl-row' : 'boy-row'}">
+      <td style="color:var(--muted);font-size:11px">${i + 1}</td>
       <td class="rollno">${s.roll}</td>
       <td><strong>${s.name}</strong></td>
       <td style="font-size:11px;color:var(--muted)">${s.year}</td>
       <td><span class="badge badge-sec">${s.section}</span></td>
-      <td><span class="badge badge-${isGirl?'girl':'boy'}">${s.gender||'Boy'}</span></td>
+      <td><span class="badge badge-${isGirl ? 'girl' : 'boy'}">${s.gender || 'Boy'}</span></td>
       <td><div class="status-btns">
-        <button class="status-btn ${c==='P'?'sel-P':''}" onclick="setMark('${s.roll}','P')">P</button>
-        <button class="status-btn ${c==='A'?'sel-A':''}" onclick="setMark('${s.roll}','A')">A</button>
-        <button class="status-btn ${c==='L'?'sel-L':''}" onclick="setMark('${s.roll}','L')">L</button>
+        <button class="status-btn ${c === 'P' ? 'sel-P' : ''}" onclick="setMark('${s.roll}','P')">P</button>
+        <button class="status-btn ${c === 'A' ? 'sel-A' : ''}" onclick="setMark('${s.roll}','A')">A</button>
+        <button class="status-btn ${c === 'L' ? 'sel-L' : ''}" onclick="setMark('${s.roll}','L')">L</button>
         ${naBtn}
       </div></td>
     </tr>`;
-  });
-  h+='</tbody></table>';
-  body.innerHTML=h;
-  updateStats(list);
-}
+      });
+      h += '</tbody></table>';
+      body.innerHTML = h;
+      updateStats(list);
+    }
 
-function setMark(r,s){marks[r]=s;renderTable();}
-function markAll(s){getFiltered().forEach(st=>{marks[st.roll]=s;});renderTable();}
+    function setMark(r, s) { marks[r] = s; renderTable(); }
+    function markAll(s) { getFiltered().forEach(st => { marks[st.roll] = s; }); renderTable(); }
 
-function updateStats(list){
-  let P=0,A=0,L=0,N=0,U=0;
-  list.forEach(s=>{
-    const m=marks[s.roll];
-    if(m==='P')P++;else if(m==='A')A++;else if(m==='L')L++;else if(m==='N')N++;else U++;
-  });
-  document.getElementById('sP').textContent=P;
-  document.getElementById('sA').textContent=A;
-  document.getElementById('sL').textContent=L;
-  document.getElementById('sN').textContent=N;
-  document.getElementById('sU').textContent=U;
-}
+    function updateStats(list) {
+      let P = 0, A = 0, L = 0, N = 0, U = 0;
+      list.forEach(s => {
+        const m = marks[s.roll];
+        if (m === 'P') P++; else if (m === 'A') A++; else if (m === 'L') L++; else if (m === 'N') N++; else U++;
+      });
+      document.getElementById('sP').textContent = P;
+      document.getElementById('sA').textContent = A;
+      document.getElementById('sL').textContent = L;
+      document.getElementById('sN').textContent = N;
+      document.getElementById('sU').textContent = U;
+    }
 
-function populateSec(){
-  const secs=[...new Set(students.map(s=>s.section).filter(Boolean))].sort();
-  const el=document.getElementById('f-sec');
-  el.innerHTML='<option value="">All Sections</option>';
-  secs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent='Section '+s;el.appendChild(o);});
-}
+    function populateSec() {
+      const secs = [...new Set(students.map(s => s.section).filter(Boolean))].sort();
+      const el = document.getElementById('f-sec');
+      el.innerHTML = '<option value="">All Sections</option>';
+      secs.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = 'Section ' + s; el.appendChild(o); });
+    }
 
-// ── HISTORY RENDER ──
-function renderHistory(){
-  const el=document.getElementById('history-list');
-  if(!historyData.length){el.innerHTML='<div class="empty">No attendance saved yet.</div>';return;}
-  el.innerHTML=historyData.map((s,i)=>{
-    const P=s.records.filter(r=>r.status==='Present').length;
-    const A=s.records.filter(r=>r.status==='Absent').length;
-    const L=s.records.filter(r=>r.status==='Late').length;
-    const N=s.records.filter(r=>r.status==='NA').length;
-    const rows=s.records.map(r=>{
-      const badgeKey=r.status==='Present'?'P':r.status==='Late'?'L':r.status==='NA'?'N':'A';
-      return `<tr>
+    // ── HISTORY RENDER ──
+    function renderHistory() {
+      const el = document.getElementById('history-list');
+      if (!historyData.length) { el.innerHTML = '<div class="empty">No attendance saved yet.</div>'; return; }
+      el.innerHTML = historyData.map((s, i) => {
+        const P = s.records.filter(r => r.status === 'Present').length;
+        const A = s.records.filter(r => r.status === 'Absent').length;
+        const L = s.records.filter(r => r.status === 'Late').length;
+        const N = s.records.filter(r => r.status === 'NA').length;
+        const rows = s.records.map(r => {
+          const badgeKey = r.status === 'Present' ? 'P' : r.status === 'Late' ? 'L' : r.status === 'NA' ? 'N' : 'A';
+          return `<tr>
         <td class="rollno">${r.roll}</td><td>${r.name}</td>
         <td style="font-size:11px;color:var(--muted)">${r.year}</td>
         <td><span class="badge badge-sec">${r.section}</span></td>
-        <td><span class="badge badge-${r.gender==='Girl'?'girl':'boy'}">${r.gender||'Boy'}</span></td>
+        <td><span class="badge badge-${r.gender === 'Girl' ? 'girl' : 'boy'}">${r.gender || 'Boy'}</span></td>
         <td><span class="badge badge-${badgeKey}">${r.status}</span></td>
       </tr>`;
-    }).join('');
-    return `<div class="h-entry">
+        }).join('');
+        return `<div class="h-entry">
       <div class="h-header" onclick="document.getElementById('hb${i}').classList.toggle('open')">
         <div>
           <div class="h-date">📅 ${s.date} &nbsp;<span style="color:var(--muted);font-weight:400">${s.time}</span></div>
@@ -853,8 +1640,8 @@ function renderHistory(){
         <div class="h-meta">
           <span class="badge badge-P">P:${P}</span>
           <span class="badge badge-A">A:${A}</span>
-          ${L?`<span class="badge badge-L">L:${L}</span>`:''}
-          ${N?`<span class="badge badge-N">NA:${N}</span>`:''}
+          ${L ? `<span class="badge badge-L">L:${L}</span>` : ''}
+          ${N ? `<span class="badge badge-N">NA:${N}</span>` : ''}
         </div>
       </div>
       <div class="h-body" id="hb${i}">
@@ -862,139 +1649,140 @@ function renderHistory(){
         <tbody>${rows}</tbody></table>
       </div>
     </div>`;
-  }).join('');
-}
+      }).join('');
+    }
 
-// ── EXPORT ──
-function setRange(r,btn){
-  exportRange=r;
-  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('custom-inputs').classList.toggle('show',r==='custom');
-  updatePreview();
-}
-function parseDate(str){
-  if(!str)return new Date(0);
-  const[d,m,y]=str.split('/');
-  return new Date(`${y}-${m}-${d}`);
-}
-function getFilteredSessions(){
-  if(exportRange==='all') return historyData;
-  if(exportRange==='custom'){
-    const f=document.getElementById('r-from').value;
-    const t=document.getElementById('r-to').value;
-    if(!f||!t) return historyData;
-    return historyData.filter(s=>{const d=parseDate(s.date);return d>=new Date(f)&&d<=new Date(t+'T23:59:59');});
-  }
-  const days=parseInt(exportRange);
-  const cut=new Date();cut.setDate(cut.getDate()-days);cut.setHours(0,0,0,0);
-  return historyData.filter(s=>parseDate(s.date)>=cut);
-}
-function updatePreview(){
-  const s=getFilteredSessions();
-  const dates=[...new Set(s.map(x=>x.date))];
-  document.getElementById('exp-preview').textContent=s.length
-    ?dates.length+' date(s) · '+s.length+' sessions · '+s.reduce((a,x)=>a+x.records.length,0)+' records'
-    :'No sessions in selected range';
-}
-function exportExcel(){
-  const sessions=getFilteredSessions();
-  if(!sessions.length){toast('No data in selected range',true);return;}
-  const sorted=[...sessions].sort((a,b)=>parseDate(a.date)-parseDate(b.date));
-  const wb=XLSX.utils.book_new();
+    // ── EXPORT ──
+    function setRange(r, btn) {
+      exportRange = r;
+      document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('custom-inputs').classList.toggle('show', r === 'custom');
+      updatePreview();
+    }
+    function parseDate(str) {
+      if (!str) return new Date(0);
+      const [d, m, y] = str.split('/');
+      return new Date(`${y}-${m}-${d}`);
+    }
+    function getFilteredSessions() {
+      if (exportRange === 'all') return historyData;
+      if (exportRange === 'custom') {
+        const f = document.getElementById('r-from').value;
+        const t = document.getElementById('r-to').value;
+        if (!f || !t) return historyData;
+        return historyData.filter(s => { const d = parseDate(s.date); return d >= new Date(f) && d <= new Date(t + 'T23:59:59'); });
+      }
+      const days = parseInt(exportRange);
+      const cut = new Date(); cut.setDate(cut.getDate() - days); cut.setHours(0, 0, 0, 0);
+      return historyData.filter(s => parseDate(s.date) >= cut);
+    }
+    function updatePreview() {
+      const s = getFilteredSessions();
+      const dates = [...new Set(s.map(x => x.date))];
+      document.getElementById('exp-preview').textContent = s.length
+        ? dates.length + ' date(s) · ' + s.length + ' sessions · ' + s.reduce((a, x) => a + x.records.length, 0) + ' records'
+        : 'No sessions in selected range';
+    }
+    function exportExcel() {
+      const sessions = getFilteredSessions();
+      if (!sessions.length) { toast('No data in selected range', true); return; }
+      const sorted = [...sessions].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+      const wb = XLSX.utils.book_new();
 
-  // All Attendance sheet
-  const all=[];
-  sorted.forEach(s=>s.records.forEach(r=>all.push({
-    'Date':s.date,'Time':s.time,'Roll':r.roll,'Name':r.name,
-    'Year':r.year,'Section':r.section,'Gender':r.gender||'','Status':r.status
-  })));
-  const ws1=XLSX.utils.json_to_sheet(all);
-  ws1['!cols']=[{wch:14},{wch:10},{wch:12},{wch:22},{wch:10},{wch:8},{wch:8},{wch:10}];
-  XLSX.utils.book_append_sheet(wb,ws1,'All Attendance');
+      // All Attendance sheet
+      const all = [];
+      sorted.forEach(s => s.records.forEach(r => all.push({
+        'Date': s.date, 'Time': s.time, 'Roll': r.roll, 'Name': r.name,
+        'Year': r.year, 'Section': r.section, 'Gender': r.gender || '', 'Status': r.status
+      })));
+      const ws1 = XLSX.utils.json_to_sheet(all);
+      ws1['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 12 }, { wch: 22 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 }];
+      XLSX.utils.book_append_sheet(wb, ws1, 'All Attendance');
 
-  // Per date sheets
-  const byDate={};
-  sorted.forEach(s=>s.records.forEach(r=>{
-    if(!byDate[s.date])byDate[s.date]=[];
-    byDate[s.date].push({'Date':s.date,'Time':s.time,'Roll':r.roll,'Name':r.name,'Year':r.year,'Sec':r.section,'Gender':r.gender||'','Status':r.status});
-  }));
-  Object.entries(byDate).forEach(([d,rows])=>{
-    const ws=XLSX.utils.json_to_sheet(rows);
-    ws['!cols']=[{wch:12},{wch:10},{wch:12},{wch:22},{wch:10},{wch:6},{wch:8},{wch:10}];
-    XLSX.utils.book_append_sheet(wb,ws,d.replace(/\//g,'-'));
-  });
+      // Per date sheets
+      const byDate = {};
+      sorted.forEach(s => s.records.forEach(r => {
+        if (!byDate[s.date]) byDate[s.date] = [];
+        byDate[s.date].push({ 'Date': s.date, 'Time': s.time, 'Roll': r.roll, 'Name': r.name, 'Year': r.year, 'Sec': r.section, 'Gender': r.gender || '', 'Status': r.status });
+      }));
+      Object.entries(byDate).forEach(([d, rows]) => {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 22 }, { wch: 10 }, { wch: 6 }, { wch: 8 }, { wch: 10 }];
+        XLSX.utils.book_append_sheet(wb, ws, d.replace(/\//g, '-'));
+      });
 
-  // Summary sheet (Boys and Girls separate, NA counted separately)
-  const sum={};
-  students.forEach(s=>{sum[s.roll]={...s,P:0,A:0,L:0,N:0,T:0};});
-  sorted.forEach(s=>s.records.forEach(r=>{
-    if(!sum[r.roll])sum[r.roll]={roll:r.roll,name:r.name,year:r.year,section:r.section,gender:r.gender||'',P:0,A:0,L:0,N:0,T:0};
-    const k=r.status==='Present'?'P':r.status==='Late'?'L':r.status==='NA'?'N':'A';
-    sum[r.roll][k]++;
-    // Don't count NA in total for attendance %
-    if(k!=='N') sum[r.roll].T++;
-  }));
-  const sumRows=Object.values(sum).filter(s=>s.P+s.A+s.L+s.N>0).map(s=>({
-    'Roll':s.roll,'Name':s.name,'Gender':s.gender||'','Year':s.year,'Section':s.section,
-    'Present':s.P,'Absent':s.A,'Late':s.L,'NA (Holiday)':s.N,'Total Classes':s.T,
-    'Attendance%':s.T?((s.P/s.T)*100).toFixed(1)+'%':'N/A'
-  }));
-  if(sumRows.length){
-    const ws3=XLSX.utils.json_to_sheet(sumRows);
-    ws3['!cols']=[{wch:12},{wch:22},{wch:8},{wch:10},{wch:8},{wch:10},{wch:8},{wch:7},{wch:13},{wch:14},{wch:13}];
-    XLSX.utils.book_append_sheet(wb,ws3,'Summary');
-  }
+      // Summary sheet (Boys and Girls separate, NA counted separately)
+      const sum = {};
+      students.forEach(s => { sum[s.roll] = { ...s, P: 0, A: 0, L: 0, N: 0, T: 0 }; });
+      sorted.forEach(s => s.records.forEach(r => {
+        if (!sum[r.roll]) sum[r.roll] = { roll: r.roll, name: r.name, year: r.year, section: r.section, gender: r.gender || '', P: 0, A: 0, L: 0, N: 0, T: 0 };
+        const k = r.status === 'Present' ? 'P' : r.status === 'Late' ? 'L' : r.status === 'NA' ? 'N' : 'A';
+        sum[r.roll][k]++;
+        // Don't count NA in total for attendance %
+        if (k !== 'N') sum[r.roll].T++;
+      }));
+      const sumRows = Object.values(sum).filter(s => s.P + s.A + s.L + s.N > 0).map(s => ({
+        'Roll': s.roll, 'Name': s.name, 'Gender': s.gender || '', 'Year': s.year, 'Section': s.section,
+        'Present': s.P, 'Absent': s.A, 'Late': s.L, 'NA (Holiday)': s.N, 'Total Classes': s.T,
+        'Attendance%': s.T ? ((s.P / s.T) * 100).toFixed(1) + '%' : 'N/A'
+      }));
+      if (sumRows.length) {
+        const ws3 = XLSX.utils.json_to_sheet(sumRows);
+        ws3['!cols'] = [{ wch: 12 }, { wch: 22 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 7 }, { wch: 13 }, { wch: 14 }, { wch: 13 }];
+        XLSX.utils.book_append_sheet(wb, ws3, 'Summary');
+      }
 
-  const dates=Object.keys(byDate);
-  const label=dates.length===1?dates[0].replace(/\//g,'-'):`${dates[0].replace(/\//g,'-')}_to_${dates[dates.length-1].replace(/\//g,'-')}`;
-  XLSX.writeFile(wb,'Attendance_'+label+'.xlsx');
-  toast('Downloaded '+dates.length+' date sheet(s)!');
-}
+      const dates = Object.keys(byDate);
+      const label = dates.length === 1 ? dates[0].replace(/\//g, '-') : `${dates[0].replace(/\//g, '-')}_to_${dates[dates.length - 1].replace(/\//g, '-')}`;
+      XLSX.writeFile(wb, 'Attendance_' + label + '.xlsx');
+      toast('Downloaded ' + dates.length + ' date sheet(s)!');
+    }
 
-// ── SETTINGS ──
-function saveCreds(){
-  const u=document.getElementById('set-u').value.trim();
-  const p=document.getElementById('set-p').value;
-  const p2=document.getElementById('set-p2').value;
-  if(!u||!p){toast('Fill all fields',true);return;}
-  if(p!==p2){toast('Passwords do not match',true);return;}
-  creds={user:u,pass:p};localSave();toast('Credentials updated!');
-  document.getElementById('set-u').value='';document.getElementById('set-p').value='';document.getElementById('set-p2').value='';
-}
+    // ── SETTINGS ──
+    function saveCreds() {
+      const u = document.getElementById('set-u').value.trim();
+      const p = document.getElementById('set-p').value;
+      const p2 = document.getElementById('set-p2').value;
+      if (!u || !p) { toast('Fill all fields', true); return; }
+      if (p !== p2) { toast('Passwords do not match', true); return; }
+      creds = { user: u, pass: p }; localSave(); toast('Credentials updated!');
+      document.getElementById('set-u').value = ''; document.getElementById('set-p').value = ''; document.getElementById('set-p2').value = '';
+    }
 
-// ── UI ──
-function switchTab(name){
-  const names=['take','history','students','settings'];
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  if(name==='history') loadHistory();
-}
-function setSyncState(s,l){
-  document.getElementById('sync-dot').className='sync-dot '+s;
-  document.getElementById('sync-lbl').textContent=l;
-}
-function showBanner(msg,type){
-  const b=document.createElement('div');
-  b.className='banner '+(type||'');
-  b.textContent=msg;
-  document.getElementById('banner-wrap').prepend(b);
-}
-function clearBanners(){document.getElementById('banner-wrap').querySelectorAll('.banner').forEach(b=>b.remove());}
-function toast(msg,err){
-  const el=document.getElementById('toast');
-  el.textContent=msg;
-  el.style.borderColor=err?'var(--accent2)':'var(--accent)';
-  el.style.color=err?'var(--accent2)':'var(--accent)';
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),3200);
-}
-function updateClock(){document.getElementById('live-clock').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+    // ── UI ──
+    function switchTab(name) {
+      const names = ['take', 'history', 'students', 'settings'];
+      document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', names[i] === name));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      if (name === 'history') loadHistory();
+    }
+    function setSyncState(s, l) {
+      document.getElementById('sync-dot').className = 'sync-dot ' + s;
+      document.getElementById('sync-lbl').textContent = l;
+    }
+    function showBanner(msg, type) {
+      const b = document.createElement('div');
+      b.className = 'banner ' + (type || '');
+      b.textContent = msg;
+      document.getElementById('banner-wrap').prepend(b);
+    }
+    function clearBanners() { document.getElementById('banner-wrap').querySelectorAll('.banner').forEach(b => b.remove()); }
+    function toast(msg, err) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.borderColor = err ? 'var(--accent2)' : 'var(--accent)';
+      el.style.color = err ? 'var(--accent2)' : 'var(--accent)';
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3200);
+    }
+    function updateClock() { document.getElementById('live-clock').textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
 
-localLoad();
-setInterval(updateClock,1000);
-updateClock();
-</script>
+    localLoad();
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
 </body>
+
 </html>
