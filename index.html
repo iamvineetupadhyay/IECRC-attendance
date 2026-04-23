@@ -455,45 +455,19 @@ async function loadGIS() {
   });
 }
 async function getToken(forcePrompt) {
-  const cid = getClientId();
-  if (!cid) return null;
-  if (gToken && !forcePrompt) return gToken;
-  await loadGIS();
-  return new Promise(res => {
-    try {
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: cid,
-        scope: 'https://www.googleapis.com/auth/spreadsheets',
-        callback: r => {
-          if (r.error) {
-            console.error('OAuth callback error:', r.error);
-            res(null);
-          } else {
-            gToken = r.access_token || null; 
-            res(gToken);
-          }
-        },
-        error_callback: err => {
-          console.error('OAuth popup error:', err);
-          res(null);
-        }
-      });
-      const opts = {};
-      if (forcePrompt) opts.prompt = 'consent';
-      client.requestAccessToken(opts);
-    } catch(err) {
-      console.error('OAuth request error:', err);
-      res(null);
-    }
-  });
+  return gToken;
 }
 async function connectSheets() {
   const cid = getClientId();
   if (!cid) { showBanner('Google Client ID not set. Go to Settings tab to add it.','warn'); addAuthBtn(); return; }
   setSyncState('busy','connecting...');
+  await loadGIS(); // pre-load the script so the click handler is synchronous
+  if (!gToken) { 
+    setSyncState('err','auth needed'); 
+    addAuthBtn(); 
+    return; 
+  }
   try {
-    const token = await getToken(false);
-    if (!token) { setSyncState('err','auth needed'); addAuthBtn(); return; }
     await ensureSheets();
     await loadStudents();
   } catch(e) { setSyncState('err','auth failed'); addAuthBtn(); }
@@ -505,13 +479,39 @@ function addAuthBtn() {
   btn.className = 'btn btn-blue auth-btn';
   btn.style.marginBottom = '16px';
   btn.textContent = 'Authorize Google Sheets Access';
-  btn.onclick = async () => {
+  btn.onclick = () => {
+    if (!window.google?.accounts) {
+       toast('Google Auth library still loading...', true);
+       return;
+    }
     gToken = null; btn.textContent = 'Authorizing...'; btn.disabled = true;
     try {
-      const token = await getToken(true);
-      if (token) { await ensureSheets(); await loadStudents(); btn.remove(); clearBanners(); }
-      else { btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false; toast('Auth failed. Check Client ID.',true); }
-    } catch(e) { btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false; }
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: getClientId(),
+        scope: 'https://www.googleapis.com/auth/spreadsheets',
+        callback: async r => {
+          if (r.error) {
+            console.error('OAuth callback error:', r.error);
+            btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
+            toast('Auth failed.', true);
+          } else {
+            gToken = r.access_token || null; 
+            await ensureSheets(); await loadStudents();
+            btn.remove(); clearBanners();
+          }
+        },
+        error_callback: err => {
+          console.error('OAuth popup error:', err);
+          btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
+          toast('Popup blocked or closed. Please allow popups.', true);
+        }
+      });
+      // Synchronous call from the click event: avoids the popup blocker!
+      client.requestAccessToken({ prompt: 'consent' });
+    } catch(err) {
+      console.error('OAuth request error:', err);
+      btn.textContent = 'Authorize Google Sheets Access'; btn.disabled = false;
+    }
   };
   wrap.prepend(btn);
 }
